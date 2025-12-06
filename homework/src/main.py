@@ -15,6 +15,8 @@ RANDOM_STATE = 123456
 
 
 def main():
+    
+    mlflow.set_tracking_uri("file:./mlruns")
 
     args = parse_argument()
     model = select_model(args)
@@ -24,16 +26,6 @@ def main():
         test_size=TEST_SIZE,
         random_state=RANDOM_STATE,
     )
-
-    # model.fit(x_train, y_train)
-
-    # mse, mae, r2 = calculate_metrics(model, x_train, y_train)
-    # print_metrics("Training metrics", mse, mae, r2)
-
-    # mse, mae, r2 = calculate_metrics(model, x_test, y_test)
-    # print_metrics("Testing metrics", mse, mae, r2)
-
-    # save_model_if_better(model, x_test, y_test)
 
     ## Se inicia un experimento en MLFlow
     mlflow.set_experiment("wine_quaility_experiment")
@@ -47,7 +39,6 @@ def main():
         mlflow.log_param("model_type", args.model)
 
         ## Log de los parámetros específicos de cada tipo de modelo
-
         if args.model == "elasticnet":
             mlflow.log_param("alpha", args.alpha)
             mlflow.log_param("l1_ratio", args.l1_ratio)
@@ -60,28 +51,24 @@ def main():
         print_metrics("Training metrics", mse, mae, r2)
 
         ## Log de las métricas de entrenamiento 
-
         mlflow.log_metric("train_mse", mse)
         mlflow.log_metric("train_mae", mae)
         mlflow.log_metric("train_r2", r2)
-
 
         mse, mae, r2 = calculate_metrics(model, x_test, y_test)
         print_metrics("Testing metrics", mse, mae, r2)
 
         ## Log de las métricas de prueba
-        
         mlflow.log_metric("test_mse", mse)
         mlflow.log_metric("test_mae", mae)
         mlflow.log_metric("test_r2", r2)
 
-
-        # save_model_if_better(model, x_test, y_test)
         ## Ya no se requiere la función save_model_if_better ya que MLFlow guarda el modelo automáticamente
         mlflow.sklearn.log_model(
             sk_model=model,
             artifact_path="model",
             input_example=x_train[:1],
         )
+
 if __name__ == "__main__":
     main()
